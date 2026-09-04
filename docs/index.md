@@ -223,6 +223,17 @@ Use a `file://` URL in your opencode.jsonc config:
 
 MIT
 
-## Author
+## Authors & Contributors
 
-Aldo
+**Maintainer:** Aldo (`Aldo-f`)
+
+**Forked from original by:**
+- Liam Vinberg (`vinberg.liam@gmail.com`) — original `opencode-rate-limit-fallback`
+- StoreBoughtKibbles (`https://github.com/StoreBoughtKibbles`) — `opencode-rate-limit-fallback-multi`
+
+**Contributors (auto-detected from git):**
+- Aldo (`aldo.fieuw@gmail.com`)
+- Andrew (`andrew.sd.lee@live.com`)
+
+**Maintainer (this fork):**
+- Aldo (`Aldo-f`)
