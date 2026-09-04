@@ -33,7 +33,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Aldo-f/opencode-multi-model-fallback.git"
+    "url": "https://github.com/Aldo-f/opencode-multi-model-fallback"
   },
   "publishConfig": {
     "access": "public",
