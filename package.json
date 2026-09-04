@@ -1,6 +1,6 @@
 {
   "name": "@aldo-f/opencode-multi-model-fallback",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "OpenCode plugin that automatically switches through a hierarchy of fallback models when rate limits are hit",
   "type": "module",
   "main": "index.ts",
