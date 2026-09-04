@@ -20,7 +20,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@aldo-f'
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -35,7 +36,7 @@ jobs:
         run: bun test
 
       - name: npm publish (GitHub Packages)
-        run: npm publish --registry=https://npm.pkg.github.com
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
