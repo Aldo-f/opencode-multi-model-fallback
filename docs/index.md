@@ -1,26 +1,29 @@
-# opencode-multi-model-fallback
+# OpenCode Multi-Model Fallback Plugin
 
 OpenCode plugin that automatically switches through a hierarchy of fallback models when rate limits are hit.
 
-[![npm version](https://img.shields.io/npm/v/opencode-multi-model-fallback.svg?style=flat-square)](https://www.npmjs.com/package/opencode-multi-model-fallback)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-
 ## Quickstart
 
-Install via npm plugin command:
-
+### Install via GitHub Packages (recommended)
 ```bash
-opencode plugin install opencode-multi-model-fallback
+npm install @aldo-f/opencode-multi-model-fallback
+# or
+bun add @aldo-f/opencode-multi-model-fallback
 ```
 
-Auto-config — first run automatically creates config with logging enabled:
+Add to your `opencode.jsonc`:
+```json
+{
+  "plugin": ["opencode-multi-model-fallback"]
+}
+```
 
+### Auto-config — first run
 ```bash
 opencode-multi-model-fallback configure
 ```
 
-Or configure manually:
-
+Or manually create config:
 ```json
 {
   "enabled": true,
@@ -32,20 +35,67 @@ Or configure manually:
 
 Log file: `~/.local/share/opencode/logs/rate-limit-fallback.log`
 
+## Installation Methods
+
+### 1. GitHub Packages (npm/bun) ✅
+```bash
+npm install @aldo-f/opencode-multi-model-fallback
+# or
+bun add @aldo-f/opencode-multi-model-fallback
+```
+
+**opencode.jsonc:**
+```json
+{
+  "plugin": ["opencode-multi-model-fallback"]
+}
+```
+
+### 2. Bun Registry
+```bash
+bun add @aldo-f/opencode-multi-model-fallback
+```
+
+### 3. JSR (jsr.io)
+```bash
+npx jsr add @aldo-f/opencode-multi-model-fallback
+```
+
+**Import:**
+```typescript
+import { createPlugin } from "jsr:@aldo-f/opencode-multi-model-fallback"
+```
+
+### 4. Direct CDN (GitHub Raw) — No install needed
+```json
+{
+  "plugin": [
+    "https://raw.githubusercontent.com/Aldo-f/opencode-multi-model-fallback/main/index.ts"
+  ]
+}
+```
+
+### 5. Local Development
+```json
+{
+  "plugin": [
+    "file:///home/aldo/dev/06-apps-opencode-multi-model-fallback/index.ts"
+  ]
+}
+```
+
 ## Usage
 
 Primary model with automatic fallback on rate limits:
-
 ```json
 {
   "model": "freellm/auto"
 }
 ```
 
-When `freellm/auto` hits a rate limit, the plugin will revert to the last user message and resubmit with `openrouter/free` (or configured fallback chain).
+When `freellm/auto` hits a rate limit, the plugin reverts to the last user message and resubmits with `openrouter/free` (or configured fallback chain).
 
 ### Multiple Fallback Models
-
 ```json
 {
   "fallbackModels": ["openrouter/free", "poolside/laguna-s-2.1:free", "deepseek/v4-flash-free"]
@@ -55,25 +105,15 @@ When `freellm/auto` hits a rate limit, the plugin will revert to the last user m
 ## Auto-Config Wizard
 
 First-time users can run:
-
 ```bash
 opencode-multi-model-fallback configure
 ```
 
 This will:
-
 1. Check for existing config
 2. Create `~/.config/opencode/rate-limit-fallback-multi.json` with sensible defaults if none exists
 3. Set `logging: true` and `fallbackModels: ["openrouter/free"]` by default
 4. Print the generated config and log file location
-
-### Customizing the Fallback Chain
-
-Run the wizard and select which providers/models to include, or edit the config file directly:
-
-```bash
-opencode-multi-model-fallback configure
-```
 
 ## Configuration File
 
@@ -113,7 +153,6 @@ When `logging: true`, structured log entries are written to:
 ```
 
 Example log output:
-
 ```
 2026-09-04T08:50:23.185Z [INFO] Rate limit hit: ? → openrouter/free {"sessionID":"ses_f94636de4ffe4i7UMTZBAcvO5m","reason":"[Poolside] poolside/laguna-s-2"}
 2026-07-24T23:27:15.815Z [INFO] Rate limit hit: opencode-go/deepseek-v4-flash → opencode/laguna-s-2.1-free {"reason":"weekly usage limit reached"}
@@ -122,15 +161,47 @@ Example log output:
 ```
 
 ### Multi-channel logging
-
 - **File log**: `~/.local/share/opencode/logs/rate-limit-fallback.log`
 - **App log**: `opencode app log` — Warn-level entries
 - **Toast**: Error toast in the TUI for immediate feedback
 
+## Publishing & Distribution
+
+### GitHub Packages (npm/bun)
+```bash
+npm run publish:github
+# Install: npm install @aldo-f/opencode-multi-model-fallback
+```
+
+**Authentication** (one-time):
+```bash
+echo "//npm.pkg.github.com/:_authToken=$(gh auth token)" >> ~/.npmrc
+```
+
+### Bun Registry
+```bash
+npm run publish:bun
+# Install: bun add @aldo-f/opencode-multi-model-fallback
+```
+
+### JSR
+```bash
+npm run publish:jsr
+# Import: import { createPlugin } from "jsr:@aldo-f/opencode-multi-model-fallback"
+```
+
+### CI/CD Pipeline
+See `.github/workflows/publish.yml` — auto-publishes on version tags.
+
+### Version bumping
+```bash
+npm version patch  # 0.3.2 → 0.3.3
+git push --tags origin main
+```
+
 ## Local Development
 
 Use a `file://` URL in your opencode.jsonc config:
-
 ```json
 {
   "plugin": [
