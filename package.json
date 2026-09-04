@@ -1,11 +1,11 @@
 {
-  "name": "opencode-rate-limit-fallback-multi",
+  "name": "opencode-multi-model-fallback",
   "version": "0.3.2",
   "description": "OpenCode plugin that automatically switches to a fallback model when rate limits are hit",
   "type": "module",
   "main": "index.ts",
   "bin": {
-    "opencode-rate-limit-fallback-multi": "configure.ts"
+    "opencode-multi-model-fallback": "configure.ts"
   },
   "files": [
     "index.ts",
@@ -29,7 +29,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/aldof/opencode-rate-limit-fallback-multi.git"
+    "url": "https://github.com/aldof/opencode-multi-model-fallback.git"
   },
   "peerDependencies": {
     "@opencode-ai/plugin": ">=1.0.0"

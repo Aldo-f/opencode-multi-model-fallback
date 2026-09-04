@@ -1,8 +1,8 @@
-# opencode-rate-limit-fallback-multi
+# opencode-multi-model-fallback
 
 OpenCode plugin that automatically switches through a hierarchy of fallback models when rate limits are hit.
 
-[![npm version](https://img.shields.io/npm/v/opencode-rate-limit-fallback-multi.svg?style=flat-square)](https://www.npmjs.com/package/opencode-rate-limit-fallback-multi)
+[![npm version](https://img.shields.io/npm/v/opencode-multi-model-fallback.svg?style=flat-square)](https://www.npmjs.com/package/opencode-multi-model-fallback)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 ## Quickstart
@@ -10,13 +10,13 @@ OpenCode plugin that automatically switches through a hierarchy of fallback mode
 Install via npm plugin command:
 
 ```bash
-opencode plugin install opencode-rate-limit-fallback-multi
+opencode plugin install opencode-multi-model-fallback
 ```
 
 Auto-config — first run automatically creates config with logging enabled:
 
 ```bash
-opencode-rate-limit-fallback-multi configure
+opencode-multi-model-fallback configure
 ```
 
 Or configure manually:
@@ -57,7 +57,7 @@ When `freellm/auto` hits a rate limit, the plugin will revert to the last user m
 First-time users can run:
 
 ```bash
-opencode-rate-limit-fallback-multi configure
+opencode-multi-model-fallback configure
 ```
 
 This will:
@@ -72,7 +72,7 @@ This will:
 Run the wizard and select which providers/models to include, or edit the config file directly:
 
 ```bash
-opencode-rate-limit-fallback-multi configure
+opencode-multi-model-fallback configure
 ```
 
 ## Configuration File
@@ -134,7 +134,7 @@ Use a `file://` URL in your opencode.jsonc config:
 ```json
 {
   "plugin": [
-    "file:///path/to/opencode-rate-limit-fallback-multi/index.ts"
+    "file:///path/to/opencode-multi-model-fallback/index.ts"
   ]
 }
 ```

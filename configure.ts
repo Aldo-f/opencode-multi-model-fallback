@@ -6,7 +6,7 @@ import { join } from "node:path"
 
 const CONFIG_FILE = join(homedir(), ".config", "opencode", "rate-limit-fallback-multi.json")
 
-console.log("=== opencode-rate-limit-fallback-multi configure ===")
+console.log("=== opencode-multi-model-fallback configure ===")
 console.log("Default: logging true, fallbackModels: [openrouter/free]")
 console.log("Creating config...\n")
 
