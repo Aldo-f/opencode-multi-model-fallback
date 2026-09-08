@@ -119,7 +119,7 @@ describe("createPlugin", () => {
     const client = mockClient()
     const hooks = await createPlugin(mockContext(client), testConfig())
 
-    // Trigger a fallback to set session index and display queue
+    // Trigger a fallback to set session index
     await fireRetry(hooks, "sess-5", "rate limit")
 
     // Delete the session
@@ -129,11 +129,6 @@ describe("createPlugin", () => {
         properties: { info: { id: "sess-5" } },
       } as any,
     })
-
-    // Stale display queue must be cleared: no completion marker
-    const output: any = { text: "original response" }
-    await hooks["experimental.text.complete"]!({ sessionID: "sess-5" } as any, output)
-    expect(output.text).toBe("original response")
 
     // Stale index must be cleared: a new retry starts at index 0, not exhaustion
     await fireRetry(hooks, "sess-5", "rate limit")
@@ -179,18 +174,20 @@ describe("createPlugin", () => {
     })
   })
 
-  test("failed fallback does not leave a false completion marker", async () => {
+  test("failed fallback does not leave session in inflight state", async () => {
     const client = mockClient()
     client.session.prompt.mockRejectedValueOnce(new Error("network error"))
     const hooks = await createPlugin(mockContext(client), testConfig())
 
     await fireRetry(hooks, "sess-12", "rate limit exceeded")
 
-    const output: any = { text: "original response" }
-    await hooks["experimental.text.complete"]!({ sessionID: "sess-12" } as any, output)
+    // Second retry should proceed since first failed and inflight was cleared
+    await fireRetry(hooks, "sess-12", "rate limit exceeded")
 
-    expect(output.text).toBe("original response")
+    expect(client.session.prompt.mock.calls.length).toBe(2)
   })
+
+  
 
   test("coalesces overlapping retry events for the same session", async () => {
     const client = mockClient()

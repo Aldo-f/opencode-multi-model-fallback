@@ -1,6 +1,5 @@
-import { appendFile, mkdir } from "node:fs/promises"
-import { join } from "node:path"
 import { homedir } from "node:os"
+import { join } from "node:path"
 
 const LOG_DIR = join(
   process.env.XDG_DATA_HOME ?? join(homedir(), ".local", "share"),
@@ -9,18 +8,17 @@ const LOG_DIR = join(
 )
 const LOG_FILE = join(LOG_DIR, "rate-limit-fallback.log")
 
-type Level = "INFO" | "WARN" | "ERROR"
-
 let initialized = false
 
 async function ensureDir(): Promise<void> {
   if (initialized) return
+  const { mkdir } = await import("node:fs/promises")
   await mkdir(LOG_DIR, { recursive: true }).catch(() => {})
   initialized = true
 }
 
 export async function log(
-  level: Level,
+  level: "INFO" | "WARN" | "ERROR",
   message: string,
   extra?: Record<string, unknown>
 ): Promise<void> {
@@ -28,17 +26,17 @@ export async function log(
   const timestamp = new Date().toISOString()
   const extraStr = extra ? " " + JSON.stringify(extra) : ""
   const line = `${timestamp} [${level}] ${message}${extraStr}\n`
+  const { appendFile } = await import("node:fs/promises")
   await appendFile(LOG_FILE, line).catch(() => {})
 }
 
-type LogFn = (message: string, extra?: Record<string, unknown>) => Promise<void>
-
-const noop: LogFn = async () => {}
-
 export function createLogger(enabled: boolean) {
   if (!enabled) {
-    return { info: noop, warn: noop, error: noop }
+    return { info: async () => {}, warn: async () => {}, error: async () => {} }
   }
-  const logAt = (level: Level): LogFn => (message, extra) => log(level, message, extra)
-  return { info: logAt("INFO"), warn: logAt("WARN"), error: logAt("ERROR") }
+  return {
+    info: (message: string, extra?: Record<string, unknown>) => log("INFO", message, extra),
+    warn: (message: string, extra?: Record<string, unknown>) => log("WARN", message, extra),
+    error: (message: string, extra?: Record<string, unknown>) => log("ERROR", message, extra),
+  }
 }

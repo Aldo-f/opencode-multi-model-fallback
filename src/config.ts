@@ -38,15 +38,7 @@ const DEFAULT_PATTERNS = [
   "network error",
 ]
 
-const DEFAULT_CONFIG: RateLimitFallbackConfig = {
-  enabled: true,
-  fallbackModels: [],
-  patterns: DEFAULT_PATTERNS,
-  logging: false,
-}
-
 const CONFIG_FILENAME = "rate-limit-fallback-multi.json"
-const SEARCH_SUBDIRS = ["config", "plugins", "plugin"]
 
 function getConfigDir(): string {
   if (process.platform === "win32") {
@@ -59,20 +51,8 @@ function getConfigDir(): string {
 
 function findConfigFile(): string | null {
   const configDir = getConfigDir()
-
   const rootPath = join(configDir, CONFIG_FILENAME)
-  if (existsSync(rootPath)) {
-    return rootPath
-  }
-
-  for (const subdir of SEARCH_SUBDIRS) {
-    const subdirPath = join(configDir, subdir, CONFIG_FILENAME)
-    if (existsSync(subdirPath)) {
-      return subdirPath
-    }
-  }
-
-  return null
+  return existsSync(rootPath) ? rootPath : null
 }
 
 function isValidFallbackModel(m: unknown): m is FallbackModel {
@@ -86,32 +66,22 @@ function isValidFallbackModel(m: unknown): m is FallbackModel {
 }
 
 export function validateConfig(raw: RawConfig): RateLimitFallbackConfig {
-  const config: RateLimitFallbackConfig = {
-    enabled: raw.enabled ?? DEFAULT_CONFIG.enabled,
-    fallbackModels: DEFAULT_CONFIG.fallbackModels,
-    patterns: DEFAULT_CONFIG.patterns,
-    logging: raw.logging ?? DEFAULT_CONFIG.logging,
+  return {
+    enabled: raw.enabled ?? true,
+    fallbackModels: Array.isArray(raw.fallbackModels)
+      ? raw.fallbackModels.filter(isValidFallbackModel)
+      : [],
+    patterns: Array.isArray(raw.patterns)
+      ? raw.patterns.filter(p => typeof p === "string" && p.length > 0)
+      : DEFAULT_PATTERNS,
+    logging: raw.logging ?? false,
   }
-
-  if (Array.isArray(raw.fallbackModels)) {
-    config.fallbackModels = raw.fallbackModels.filter(isValidFallbackModel)
-  }
-
-  if (Array.isArray(raw.patterns)) {
-    config.patterns = raw.patterns.filter(p => typeof p === "string" && p.length > 0)
-  }
-
-  return config
 }
 
 export function parseModel(model: FallbackModel): FallbackModelObject {
-  if (typeof model === "object") {
-    return model
-  }
+  if (typeof model === "object") return model
   const slashIndex = model.indexOf("/")
-  if (slashIndex === -1) {
-    return { providerID: model, modelID: model }
-  }
+  if (slashIndex === -1) return { providerID: model, modelID: model }
   return {
     providerID: model.substring(0, slashIndex),
     modelID: model.substring(slashIndex + 1),
@@ -120,16 +90,13 @@ export function parseModel(model: FallbackModel): FallbackModelObject {
 
 export function loadConfig(): RateLimitFallbackConfig {
   const configPath = findConfigFile()
-
   if (!configPath) {
-    return { ...DEFAULT_CONFIG }
+    return { enabled: true, fallbackModels: [], patterns: DEFAULT_PATTERNS, logging: false }
   }
-
   try {
     const content = readFileSync(configPath, "utf-8")
-    const userConfig = JSON.parse(content) as RawConfig
-    return validateConfig(userConfig)
+    return validateConfig(JSON.parse(content) as RawConfig)
   } catch {
-    return { ...DEFAULT_CONFIG }
+    return { enabled: true, fallbackModels: [], patterns: DEFAULT_PATTERNS, logging: false }
   }
 }

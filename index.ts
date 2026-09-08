@@ -10,3 +10,6 @@ export type {
 
 import { createPlugin } from "./src/plugin"
 export default createPlugin
+
+// Export the createPlugin function for opencode plugin CLI install alias
+export type { createPlugin } from "./src/plugin"

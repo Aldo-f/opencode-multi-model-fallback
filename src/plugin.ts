@@ -29,25 +29,23 @@ interface MessageWithParts {
   parts: MessagePart[]
 }
 
-const sessionIndex = new Map<string, number>()
-const sessionFallback = new Map<string, { queue: number[]; start: number }>()
-const sessionInflight = new Map<string, object>()
-
-function createPatternMatcher(patterns: string[]) {
-  return (message: string): boolean => {
-    const lower = message.toLowerCase()
-    return patterns.some(pattern => lower.includes(pattern.toLowerCase()))
-  }
+interface SessionState {
+  index: number
+  queue: number[]
+  inflight: boolean
+  start: number
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
+const sessions = new Map<string, SessionState>()
+
+function isRateLimitMessage(message: string, patterns: string[]): boolean {
+  const lower = message.toLowerCase()
+  return patterns.some(pattern => lower.includes(pattern.toLowerCase()))
 }
 
 export async function createPlugin(context: PluginInput, configOverride?: RateLimitFallbackConfig): Promise<Hooks> {
   const config = validateConfig(configOverride ?? loadConfig())
   const logger = createLogger(config.logging)
-  const isRateLimitMessage = createPatternMatcher(config.patterns)
   const fallbackModels = config.fallbackModels.map(parseModel)
 
   await logger.info("Plugin initialized", {
@@ -66,9 +64,7 @@ export async function createPlugin(context: PluginInput, configOverride?: RateLi
       if (event.type === "session.deleted") {
         const props = event.properties as { info?: { id?: string } }
         if (props.info?.id) {
-          sessionIndex.delete(props.info.id)
-          sessionFallback.delete(props.info.id)
-          sessionInflight.delete(props.info.id)
+          sessions.delete(props.info.id)
           await logger.info("Session cleaned up", { sessionID: props.info.id })
         }
         return
@@ -87,16 +83,17 @@ export async function createPlugin(context: PluginInput, configOverride?: RateLi
       }
 
       if (props.status.type !== "retry" || !props.status.message) return
-      if (!isRateLimitMessage(props.status.message)) return
+      if (!isRateLimitMessage(props.status.message, config.patterns)) return
 
       const sessionID = props.sessionID
 
-      if (sessionInflight.has(sessionID)) {
+      const existing = sessions.get(sessionID)
+      if (existing?.inflight) {
         await logger.info("Fallback already in progress, ignoring retry", { sessionID })
         return
       }
 
-      const currentIndex = sessionIndex.get(sessionID) ?? -1
+      const currentIndex = existing?.index ?? -1
       const nextIndex = currentIndex + 1
 
       if (nextIndex >= fallbackModels.length) {
@@ -110,8 +107,7 @@ export async function createPlugin(context: PluginInput, configOverride?: RateLi
       }
 
       const model = fallbackModels[nextIndex]
-      const token = {}
-      sessionInflight.set(sessionID, token)
+      sessions.set(sessionID, { ...existing, inflight: true, start: existing?.start ?? Date.now() } as SessionState)
 
       const reason = props.status.message.split("\n")[0].split(".")[0].substring(0, 80)
       const fromLabel = currentIndex < 0 ? "?" : config.fallbackModels[currentIndex]
@@ -122,7 +118,7 @@ export async function createPlugin(context: PluginInput, configOverride?: RateLi
 
       try {
         await context.client.session.abort({ path: { id: sessionID } })
-        await sleep(200)
+        await new Promise(r => setTimeout(r, 200))
         const messagesResponse = await context.client.session.messages({ path: { id: sessionID } })
         const messages = messagesResponse.data as MessageWithParts[] | undefined
 
@@ -152,7 +148,7 @@ export async function createPlugin(context: PluginInput, configOverride?: RateLi
           path: { id: sessionID },
           body: { messageID: lastUserMessage.info.id },
         })
-        await sleep(500)
+        await new Promise(r => setTimeout(r, 500))
 
         await context.client.session.prompt({
           path: { id: sessionID },
@@ -163,33 +159,23 @@ export async function createPlugin(context: PluginInput, configOverride?: RateLi
           },
         })
 
-        sessionIndex.set(sessionID, nextIndex)
-        let state = sessionFallback.get(sessionID)
-        if (!state) {
-          state = { queue: [], start: Date.now() }
-          sessionFallback.set(sessionID, state)
+        const state = sessions.get(sessionID)
+        if (state) {
+          sessions.set(sessionID, { 
+            ...state, 
+            index: nextIndex, 
+            inflight: false, 
+            queue: [...(state.queue ?? []), nextIndex] 
+          })
         }
-        state.queue.push(nextIndex)
 
         await logger.info("Fallback prompt sent successfully", { sessionID, index: nextIndex })
 
-        // Multi-channel notification
         try {
           await context.client.tui.showToast({
             body: {
               message: `Rate limit hit — switched to ${config.fallbackModels[nextIndex]}`,
               variant: "error",
-            },
-          })
-        } catch {}
-
-        try {
-          await context.client.app.log({
-            body: {
-              service: "rate-limit-fallback",
-              level: "warn",
-              message: `Rate limit detected — switched to ${config.fallbackModels[nextIndex]}`,
-              extra: { sessionID, fromIndex: currentIndex, toIndex: nextIndex },
             },
           })
         } catch {}
@@ -200,50 +186,17 @@ export async function createPlugin(context: PluginInput, configOverride?: RateLi
           error: err instanceof Error ? err.message : String(err),
         })
       } finally {
-        if (sessionInflight.get(sessionID) === token) {
-          sessionInflight.delete(sessionID)
+        const state = sessions.get(sessionID)
+        if (state) {
+          sessions.set(sessionID, { ...state, inflight: false })
         }
-      }
-    },
-    "experimental.text.complete": async (input, output) => {
-      const state = sessionFallback.get(input.sessionID)
-      if (state && state.queue.length > 0) {
-        const lines = state.queue.map(i => `[← Rate limit hit: switched to ${config.fallbackModels[i]}]`)
-        output.text = lines.join("\n") + "\n" + output.text
-        const elapsed = Date.now() - state.start
-        await logger.info(
-          `Fallback settled: ${config.fallbackModels[state.queue[state.queue.length - 1]]} (${state.queue.length} fallbacks in ${elapsed}ms)`,
-          { sessionID: input.sessionID }
-        )
-        sessionFallback.delete(input.sessionID)
       }
     },
   }
 }
 
-type PromptPart =
-  | { type: "text"; text: string }
-  | { type: "file"; mime: string; filename?: string; url: string }
-  | { type: "agent"; name: string }
+type PromptPart = { type: "text"; text: string }
 
 function convertToPromptPart(part: MessagePart): PromptPart | null {
-  switch (part.type) {
-    case "text":
-      if (part.text) {
-        return { type: "text", text: part.text }
-      }
-      return null
-    case "file":
-      if (part.url && part.mime) {
-        return { type: "file", mime: part.mime, filename: part.filename, url: part.url }
-      }
-      return null
-    case "agent":
-      if (part.name) {
-        return { type: "agent", name: part.name }
-      }
-      return null
-    default:
-      return null
-  }
+  return part.type === "text" && part.text ? { type: "text", text: part.text } : null
 }

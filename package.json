@@ -1,25 +1,21 @@
 {
-  "name": "@aldo-f/opencode-multi-model-fallback",
+  "name": "@usful/opencode-multi-model-fallback",
   "version": "0.3.5",
   "description": "OpenCode plugin that automatically switches through a hierarchy of fallback models when rate limits are hit",
   "type": "module",
   "main": "index.ts",
-  "bin": {
-    "opencode-multi-model-fallback": "configure.ts"
-  },
   "files": [
     "index.ts",
-    "configure.ts",
     "src"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "configure": "bun run configure.ts",
-    "publish:github": "npm publish --registry=https://npm.pkg.github.com",
+    "publish:npm": "npm publish --access=restricted",
     "publish:bun": "bun publish",
     "publish:jsr": "npx jsr publish",
-    "publish:all": "npm run publish:github && npm run publish:bun && npm run publish:jsr"
+    "publish:all": "npm run publish:npm && npm run publish:bun && npm run publish:jsr"
   },
   "keywords": [
     "opencode",
@@ -37,7 +33,7 @@
   },
   "publishConfig": {
     "access": "public",
-    "registry": "https://npm.pkg.github.com"
+    "registry": "https://registry.npmjs.org"
   },
   "peerDependencies": {
     "@opencode-ai/plugin": ">=1.0.0"

@@ -9,13 +9,15 @@ OpenCode plugin that automatically switches through a hierarchy of fallback mode
 ## Quickstart
 
 ### Install via GitHub Packages (recommended)
+
 ```bash
-npm install @aldo-f/opencode-multi-model-fallback
+npm install @usful/opencode-multi-model-fallback
 # or
-bun add @aldo-f/opencode-multi-model-fallback
+bun add @usful/opencode-multi-model-fallback
 ```
 
 Add to your `opencode.jsonc`:
+
 ```json
 {
   "plugin": ["opencode-multi-model-fallback"]
@@ -23,11 +25,13 @@ Add to your `opencode.jsonc`:
 ```
 
 ### Auto-config — first run
+
 ```bash
 opencode-multi-model-fallback configure
 ```
 
 Or manually create config:
+
 ```json
 {
   "enabled": true,
@@ -42,10 +46,11 @@ Log file: `~/.local/share/opencode/logs/rate-limit-fallback.log`
 ## Installation Methods
 
 ### 1. GitHub Packages (npm/bun) ✅
+
 ```bash
-npm install @aldo-f/opencode-multi-model-fallback
+npm install @usful/opencode-multi-model-fallback
 # or
-bun add @aldo-f/opencode-multi-model-fallback
+bun add @usful/opencode-multi-model-fallback
 ```
 
 **opencode.jsonc:**
@@ -56,21 +61,24 @@ bun add @aldo-f/opencode-multi-model-fallback
 ```
 
 ### 2. Bun Registry
+
 ```bash
-bun add @aldo-f/opencode-multi-model-fallback
+bun add @usful/opencode-multi-model-fallback
 ```
 
 ### 3. JSR (jsr.io)
+
 ```bash
-npx jsr add @aldo-f/opencode-multi-model-fallback
+npx jsr add @usful/opencode-multi-model-fallback
 ```
 
 **Import:**
 ```typescript
-import { createPlugin } from "jsr:@aldo-f/opencode-multi-model-fallback"
+import { createPlugin } from "jsr:@usful/opencode-multi-model-fallback";
 ```
 
 ### 4. Direct CDN (GitHub Raw) — No install needed
+
 ```json
 {
   "plugin": [
@@ -80,6 +88,7 @@ import { createPlugin } from "jsr:@aldo-f/opencode-multi-model-fallback"
 ```
 
 ### 5. Local Development
+
 ```json
 {
   "plugin": [
@@ -91,6 +100,7 @@ import { createPlugin } from "jsr:@aldo-f/opencode-multi-model-fallback"
 ## Usage
 
 Primary model with automatic fallback on rate limits:
+
 ```json
 {
   "model": "freellm/auto"
@@ -100,6 +110,7 @@ Primary model with automatic fallback on rate limits:
 When `freellm/auto` hits a rate limit, the plugin reverts to the last user message and resubmits with `openrouter/free` (or configured fallback chain).
 
 ### Multiple Fallback Models
+
 ```json
 {
   "fallbackModels": ["openrouter/free", "poolside/laguna-s-2.1:free", "deepseek/v4-flash-free"]
@@ -109,6 +120,7 @@ When `freellm/auto` hits a rate limit, the plugin reverts to the last user messa
 ## Auto-Config Wizard
 
 First-time users can run:
+
 ```bash
 opencode-multi-model-fallback configure
 ```
@@ -160,11 +172,11 @@ Example log output:
 ```
 2026-09-04T08:50:23.185Z [INFO] Rate limit hit: ? → openrouter/free {"sessionID":"ses_f94636de4ffe4i7UMTZBAcvO5m","reason":"[Poolside] poolside/laguna-s-2"}
 2026-07-24T23:27:15.815Z [INFO] Rate limit hit: opencode-go/deepseek-v4-flash → opencode/laguna-s-2.1-free {"reason":"weekly usage limit reached"}
-2026-07-24T23:27:16.828Z [INFO] Rate limit hit: opencode/laguna-s-2.1-free → opencode/deepseek-v4-flash-free {"reason":"Provider rate limit exceeded"}
-2026-07-24T23:27:28.062Z [INFO] Fallback settled: opencode/deepseek-v4-flash-free (2 fallbacks in 12647ms)
+2026-07-24T23:27:16.828Z [INFO] Fallback settled: opencode/deepseek-v4-flash-free (2 fallbacks in 12647ms)
 ```
 
 ### Multi-channel logging
+
 - **File log**: `~/.local/share/opencode/logs/rate-limit-fallback.log`
 - **App log**: `opencode app log` — Warn-level entries
 - **Toast**: Error toast in the TUI for immediate feedback
@@ -172,14 +184,15 @@ Example log output:
 ## Publishing & Distribution
 
 ### GitHub Packages (npm/bun)
+
 ```bash
 # Publish
 npm run publish:github
 
 # Install
-npm install @aldo-f/opencode-multi-model-fallback
+npm install @usful/opencode-multi-model-fallback
 # or
-bun add @aldo-f/opencode-multi-model-fallback
+bun add @usful/opencode-multi-model-fallback
 ```
 
 **Authentication** (one-time):
@@ -188,21 +201,25 @@ echo "//npm.pkg.github.com/:_authToken=$(gh auth token)" >> ~/.npmrc
 ```
 
 ### Bun Registry
+
 ```bash
 npm run publish:bun
-# Install: bun add @aldo-f/opencode-multi-model-fallback
+# Install: bun add @usful/opencode-multi-model-fallback
 ```
 
 ### JSR
+
 ```bash
 npm run publish:jsr
-# Import: import { createPlugin } from "jsr:@aldo-f/opencode-multi-model-fallback"
+# Import: import { createPlugin } from "jsr:@usful/opencode-multi-model-fallback"
 ```
 
 ### CI/CD Pipeline
+
 See `.github/workflows/publish.yml` — auto-publishes on version tags.
 
 ### Version bumping
+
 ```bash
 npm version patch  # 0.3.2 → 0.3.3
 git push --tags origin main
@@ -210,11 +227,12 @@ git push --tags origin main
 
 ## Local Development
 
-Use a `file://` URL in your opencode.jsonc config:
+Use a `file://` URL in your `opencode.jsonc` config:
+
 ```json
 {
   "plugin": [
-    "file:///path/to/opencode-multi-model-fallback/index.ts"
+    "file:///home/aldo/dev/06-apps-opencode-multi-model-fallback/index.ts"
   ]
 }
 ```
@@ -237,12 +255,12 @@ MIT
 **Maintainer:** Aldo (`Aldo-f`)
 
 **Forked from original by:**
-- Liam Vinberg (`vinberg.liam@gmail.com`) — original `opencode-rate-limit-fallback`
+- Liam Vinberg (`[REDACTED]`) — original `opencode-rate-limit-fallback`
 - StoreBoughtKibbles (`https://github.com/StoreBoughtKibbles`) — `opencode-rate-limit-fallback-multi`
 
 **Contributors (auto-detected from git):**
-- Aldo (`aldo.fieuw@gmail.com`)
-- Andrew (`andrew.sd.lee@live.com`)
+- Aldo (`[REDACTED]`)
+- Andrew (`[REDACTED]`)
 
 **Maintainer (this fork):**
 - Aldo (`Aldo-f`)
