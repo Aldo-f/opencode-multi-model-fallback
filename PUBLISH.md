@@ -4,7 +4,7 @@ Prerequisites (verify before pushing):
   [ ] npm test → 17 pass, 0 fail
   [ ] npm run typecheck → 0 errors
   [ ] git status → clean working tree (or committed)
-  [ ] .husky/pre-commit runs prettier --write + eslint --fix + tests
+  [ ] .husky/pre-commit (autofixes with prettier + @eslint/js eslint --fix; blocks commit if tests fail)
 
 Commands to publish to all managers:
 
