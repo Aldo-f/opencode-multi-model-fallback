@@ -15,7 +15,8 @@
     "publish:npm": "npm publish --access=restricted",
     "publish:bun": "bun publish",
     "publish:jsr": "npx jsr publish",
-    "publish:all": "npm run publish:npm && npm run publish:bun && npm run publish:jsr"
+    "publish:all": "npm run publish:npm && npm run publish:bun && npm run publish:jsr",
+    "prepare": "husky"
   },
   "keywords": [
     "opencode",
@@ -41,6 +42,7 @@
   "devDependencies": {
     "@opencode-ai/plugin": "^1.0.0",
     "@types/node": "^22.0.0",
+    "husky": "^9.1.7",
     "typescript": "^5.0.0"
   }
 }

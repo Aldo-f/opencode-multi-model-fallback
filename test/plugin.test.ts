@@ -8,6 +8,7 @@ function testConfig(overrides?: Partial<RateLimitFallbackConfig>): RateLimitFall
     fallbackModels: ["anthropic/claude-opus-4-5"],
     patterns: ["rate limit", "usage limit", "too many requests"],
     logging: false,
+    maxRetries: 3,
     ...overrides,
   }
 }
@@ -165,9 +166,10 @@ describe("createPlugin", () => {
     const hooks = await createPlugin(mockContext(client), testConfig())
 
     await fireRetry(hooks, "sess-11", "rate limit exceeded")
+    // Prompt fails but retries increments; second retry retries from index 0 again
     await fireRetry(hooks, "sess-11", "rate limit exceeded")
 
-    expect(client.session.prompt.mock.calls.length).toBe(2)
+    expect(client.session.prompt.mock.calls.length).toBe(2) // retries from index 0 on failure
     expect(client.session.prompt.mock.calls[0][0].body.model).toEqual({
       providerID: "anthropic",
       modelID: "claude-opus-4-5",
@@ -271,4 +273,69 @@ describe("createPlugin", () => {
 
     expect(client.session.abort).not.toHaveBeenCalled()
   })
+
+  test("ignores non-retry session.error events when fallbackOnAllErrors is false (default)", async () => {
+    const client = mockClient()
+    const hooks = await createPlugin(mockContext(client), testConfig())
+
+    await hooks.event!({      event: {
+        type: "session.error",
+        properties: { sessionID: "sess-err", error: { message: "unexpected error" } },
+      } as any,
+    })
+
+    expect(client.session.abort).not.toHaveBeenCalled()
+  })
+
+  test("processes session.error events when fallbackOnAllErrors is true", async () => {
+    const client = mockClient()
+    const hooks = await createPlugin(mockContext(client), testConfig({ fallbackOnAllErrors: true }))
+
+    await hooks.event!({      event: {
+        type: "session.error",
+        properties: { sessionID: "sess-all-errors", error: { message: "unexpected error" } },
+      } as any,
+    })
+
+    expect(client.session.abort).toHaveBeenCalledWith({ path: { id: "sess-all-errors" } })
+  })
+
+  test("respects maxRetries and does not exceed configured limit", async () => {
+    const client = mockClient()
+    const hooks = await createPlugin(mockContext(client), testConfig({ maxRetries: 2 }))
+
+    // First retry → advances to index 0 (retries 0→1)
+    await fireRetry(hooks, "sess-max", "rate limit exceeded")
+    expect(client.session.abort).toHaveBeenCalledTimes(1)
+
+    // Second retry → retries=1 < 2, advances to index 1
+    await fireRetry(hooks, "sess-max", "rate limit exceeded again")
+    expect(client.session.abort).toHaveBeenCalledTimes(1)
+
+    // Third retry (retries=2 >= max=2 stops) → retries=2 >= maxRetries=2, stops
+    await fireRetry(hooks, "sess-max", "rate limit exceeded third time")
+    expect(client.session.abort).toHaveBeenCalledTimes(1) // retries cap stops at 2
+  })
+
+  test("default maxRetries is 3 when not specified", async () => {
+    const client = mockClient()
+    const hooks = await createPlugin(mockContext(client), testConfig())
+
+    // First retry → index 0, retries 0→1
+    await fireRetry(hooks, "sess-default", "rate limit exceeded")
+    expect(client.session.abort).toHaveBeenCalledTimes(1)
+
+    // Second retry → index 1, retries 1→2
+    await fireRetry(hooks, "sess-default", "rate limit exceeded again")
+    expect(client.session.abort).toHaveBeenCalledTimes(1)
+
+    // Third retry (retries=2 >= max=2 stops) → index 2, retries 2→3
+    await fireRetry(hooks, "sess-default", "rate limit exceeded third time")
+    expect(client.session.abort).toHaveBeenCalledTimes(1)
+
+    // Fourth retry → retries=3 >= maxRetries=3 → stops
+    await fireRetry(hooks, "sess-default", "rate limit exceeded fourth time")
+    expect(client.session.abort).toHaveBeenCalledTimes(1) // retries cap stops at 1
+  })
+
 })

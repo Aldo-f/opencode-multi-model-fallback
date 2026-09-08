@@ -1,0 +1,9 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Autofixing code with prettier + eslint..."
+npx prettier --write "src/**/*.ts" "test/**/*.ts" "index.ts" || true
+npx eslint --fix src/ test/ index.ts || true
+
+echo "Running checks..."
+npm run typecheck && npm test

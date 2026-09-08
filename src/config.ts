@@ -14,6 +14,8 @@ export interface RateLimitFallbackConfig {
   fallbackModels: FallbackModel[]
   patterns: string[]
   logging: boolean
+  fallbackOnAllErrors?: boolean
+  maxRetries: number
 }
 
 export interface RawConfig {
@@ -21,6 +23,8 @@ export interface RawConfig {
   fallbackModels?: FallbackModel[]
   patterns?: string[]
   logging?: boolean
+  fallbackOnAllErrors?: boolean
+  maxRetries?: number
 }
 
 const DEFAULT_PATTERNS = [
@@ -75,6 +79,8 @@ export function validateConfig(raw: RawConfig): RateLimitFallbackConfig {
       ? raw.patterns.filter(p => typeof p === "string" && p.length > 0)
       : DEFAULT_PATTERNS,
     logging: raw.logging ?? false,
+    fallbackOnAllErrors: raw.fallbackOnAllErrors ?? false,
+    maxRetries: typeof raw.maxRetries === "number" && raw.maxRetries > 0 ? raw.maxRetries : 3,
   }
 }
 
@@ -91,12 +97,12 @@ export function parseModel(model: FallbackModel): FallbackModelObject {
 export function loadConfig(): RateLimitFallbackConfig {
   const configPath = findConfigFile()
   if (!configPath) {
-    return { enabled: true, fallbackModels: [], patterns: DEFAULT_PATTERNS, logging: false }
+    return { enabled: true, fallbackModels: [], patterns: DEFAULT_PATTERNS, logging: false, fallbackOnAllErrors: false, maxRetries: 3 }
   }
   try {
     const content = readFileSync(configPath, "utf-8")
     return validateConfig(JSON.parse(content) as RawConfig)
   } catch {
-    return { enabled: true, fallbackModels: [], patterns: DEFAULT_PATTERNS, logging: false }
+    return { enabled: true, fallbackModels: [], patterns: DEFAULT_PATTERNS, logging: false, fallbackOnAllErrors: false, maxRetries: 3 }
   }
 }
