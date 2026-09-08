@@ -1,6 +1,6 @@
 {
   "name": "@usful/opencode-multi-model-fallback",
-  "version": "0.3.5",
+  "version": "0.4.1",
   "description": "OpenCode plugin that automatically switches through a hierarchy of fallback models when rate limits are hit",
   "type": "module",
   "main": "index.ts",
