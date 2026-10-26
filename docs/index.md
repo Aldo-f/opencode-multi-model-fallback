@@ -6,9 +6,9 @@ OpenCode plugin that automatically switches through a hierarchy of fallback mode
 
 ### Install via GitHub Packages (recommended)
 ```bash
-npm install @aldo-f/opencode-multi-model-fallback
+npm install @usful/opencode-multi-model-fallback
 # or
-bun add @aldo-f/opencode-multi-model-fallback
+bun add @usful/opencode-multi-model-fallback
 ```
 
 Add to your `opencode.jsonc`:
@@ -39,9 +39,9 @@ Log file: `~/.local/share/opencode/logs/rate-limit-fallback.log`
 
 ### 1. GitHub Packages (npm/bun) ✅
 ```bash
-npm install @aldo-f/opencode-multi-model-fallback
+npm install @usful/opencode-multi-model-fallback
 # or
-bun add @aldo-f/opencode-multi-model-fallback
+bun add @usful/opencode-multi-model-fallback
 ```
 
 **opencode.jsonc:**
@@ -53,17 +53,17 @@ bun add @aldo-f/opencode-multi-model-fallback
 
 ### 2. Bun Registry
 ```bash
-bun add @aldo-f/opencode-multi-model-fallback
+bun add @usful/opencode-multi-model-fallback
 ```
 
 ### 3. JSR (jsr.io)
 ```bash
-npx jsr add @aldo-f/opencode-multi-model-fallback
+npx jsr add @usful/opencode-multi-model-fallback
 ```
 
 **Import:**
 ```typescript
-import { createPlugin } from "jsr:@aldo-f/opencode-multi-model-fallback"
+import { createPlugin } from "jsr:@usful/opencode-multi-model-fallback"
 ```
 
 ### 4. Direct CDN (GitHub Raw) — No install needed
@@ -167,35 +167,35 @@ Example log output:
 
 ## Publishing & Distribution
 
-### GitHub Packages (npm/bun)
+### npmjs.com (public, scoped @usful)
 ```bash
-npm run publish:github
-# Install: npm install @aldo-f/opencode-multi-model-fallback
+npm run publish:npm
+# Install: npm install @usful/opencode-multi-model-fallback
 ```
 
-**Authentication** (one-time):
+**Authentication** (one-time, required for CI):
 ```bash
-echo "//npm.pkg.github.com/:_authToken=$(gh auth token)" >> ~/.npmrc
+npm login --scope=@usful --registry=https://registry.npmjs.org
 ```
 
 ### Bun Registry
 ```bash
 npm run publish:bun
-# Install: bun add @aldo-f/opencode-multi-model-fallback
+# Install: bun add @usful/opencode-multi-model-fallback
 ```
 
 ### JSR
 ```bash
 npm run publish:jsr
-# Import: import { createPlugin } from "jsr:@aldo-f/opencode-multi-model-fallback"
+# Import: import { createPlugin } from "jsr:@usful/opencode-multi-model-fallback"
 ```
 
 ### CI/CD Pipeline
-See `.github/workflows/publish.yml` — auto-publishes on version tags.
+See `.github/workflows/publish.yml` — auto-publishes to npmjs.com, Bun, and JSR on every version tag (`v*.*.*`), and **creates a GitHub Release** automatically.
 
 ### Version bumping
 ```bash
-npm version patch  # 0.3.2 → 0.3.3
+npm version patch  # 0.4.1 → 0.4.2
 git push --tags origin main
 ```
 

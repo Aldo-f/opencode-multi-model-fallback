@@ -6,54 +6,42 @@ This directory contains CI/CD workflows for the opencode-multi-model-fallback pr
 
 ### publish.yml
 Manages package publishing to multiple registries:
-- **GitHub Packages** (`npm publish --registry=https://npm.pkg.github.com`)
+
+- **npmjs.com** (`npm publish --access=public` → `https://registry.npmjs.org`, scoped `@usful`)
 - **Bun Registry** (`bun publish`)
 - **JSR** (`npx jsr publish`)
 
-Triggers on version tags (e.g., `v1.0.0`, `1.0.0`).
+Triggers on version tags (e.g., `v0.4.2`, `v0.3.5`).
 
-### Example structure
+Steps run automatically on every matching tag push:
 
-```yaml
-title: Publish Package
+1. `bun install`
+2. `bun run typecheck`
+3. `bun test`
+4. `npm run build` (emits `dist/`)
+5. `npm publish --access=public` (requires `NPM_TOKEN` secret for `@usful` scope)
+6. `gh release create <tag>` (creates GitHub Release automatically via `GITHUB_TOKEN`)
+7. `bun publish` (requires `BUN_TOKEN`)
+8. `npx jsr publish` (requires `JSR_TOKEN`)
 
-on:
-  push:
-    tags:
-      - "v*"
-      - "*.0.0"
-      - "*.0"
+## Release Tags
 
-jobs:
-  publish:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-      - run: npm ci
-      - name: Set auth for GitHub Packages
-        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
-      - name: Publish to GitHub Packages
-        run: npm publish --registry=https://npm.pkg.github.com
-      - name: Publish to Bun Registry
-        run: bun publish
-      - name: Publish to JSR
-        run: npx jsr publish
-```
+A release tag (`v*.*.*`) **must** exist when publishing a new version. The workflow:
+
+- Runs on pushes to tags matching `v*.*.*`
+- Builds and publishes to all registries
+- Automatically creates a GitHub Release for that tag (`gh release create`)
 
 ## Usage
 
-Each workflow is triggered automatically on pushes to tags matching the pattern. The publish step uses authentication from GitHub Actions secrets.
+Each workflow is triggered automatically on pushes to tags matching the pattern.
 
 For local testing, refer to the scripts in `package.json`:
 
-- `npm run publish:github` - Publish to GitHub Packages only
+- `npm run build` - Build to `dist/`
+- `npm run typecheck` - TypeScript type check
+- `npm test` - Run tests
+- `npm run publish:npm` - Publish to npmjs.com only
 - `npm run publish:bun` - Publish to Bun Registry only
 - `npm run publish:jsr` - Publish to JSR only
 - `npm run publish:all` - Publish to all registries (note: may require multiple auth tokens)
@@ -63,3 +51,4 @@ For local testing, refer to the scripts in `package.json`:
 - Auth tokens are stored as GitHub Actions secrets
 - Publishing to public registries is safe
 - Consider restricting workflow permissions based on your security requirements
+- `NPM_TOKEN` must grant access to the `@usful` npm org for npmjs.com publishing

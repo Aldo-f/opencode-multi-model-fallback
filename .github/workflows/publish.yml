@@ -10,7 +10,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       id-token: write
       packages: write
 
@@ -43,6 +43,12 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           # Requires NPM_TOKEN secret with access to @usful org
+
+      - name: Create GitHub Release
+        if: success()
+        run: gh release create "${GITHUB_REF_NAME}" --generate-release-notes --title "${GITHUB_REF_NAME}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: bun publish
         run: bun publish

@@ -50,6 +50,9 @@
     "@eslint/js": "^10.0.1",
     "@opencode-ai/plugin": "^1.0.0",
     "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.72.0",
+    "@typescript-eslint/parser": "^8.72.0",
+    "eslint": "^10.13.0",
     "husky": "^9.1.7",
     "typescript": "^5.0.0"
   }

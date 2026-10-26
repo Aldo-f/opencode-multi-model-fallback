@@ -74,7 +74,7 @@ describe('createPlugin', () => {
     expect(client.session.abort).not.toHaveBeenCalled();
   });
 
-  test("ignores retry messages that don't match rate limit patterns", async () => {
+  test('ignores retry messages that don\'t match rate limit patterns', async () => {
     const client = mockClient();
     const hooks = await createPlugin(mockContext(client), testConfig());
 
