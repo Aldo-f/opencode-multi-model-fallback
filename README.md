@@ -141,17 +141,17 @@ Example log output:
 flowchart TD
     A[User sends message to primary model] --> B[Rate limit error detected]
     B --> C{If fallbackModels exhausted?}
-    C -- Yes --> D[Log: "All fallbacks exhausted" + Toast]
+    C -- Yes --> D[Log: All fallbacks exhausted + Toast]
     C -- No --> E[Revert to last user message]
     E --> F[Send with next model in chain]
-    F --> G[Log: "Rate limit hit: modelA → modelB"]
+    F --> G[Log: Rate limit hit: modelA → modelB]
     G --> H{Success?}
     H -- Yes --> I[Increment session index]
     H -- No --> J[Reset inflight, increment retries]
     I --> K[Continue with next model]
     J --> L[Retry with same model]
     L --> M{Retry limit reached?}
-    M -- Yes --> N[Log: "Max retries exceeded" + Toast]
+    M -- Yes --> N[Log: Max retries exceeded + Toast]
     M -- No --> O[Retry with same model]
 
     subgraph "Configuration"
@@ -172,7 +172,7 @@ flowchart TD
 
     subgraph "Error detection"
         W[session.status events]
-        X[status.type === "retry"]
+        X[status.type === retry]
         Y[message matches patterns]
         Z[session.error events]
     end
