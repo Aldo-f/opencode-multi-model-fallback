@@ -3,16 +3,23 @@
   "version": "0.4.1",
   "description": "OpenCode plugin that automatically switches through a hierarchy of fallback models when rate limits are hit",
   "type": "module",
-  "main": "index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "files": [
-    "index.ts",
-    "src"
+    "dist"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
     "test": "bun test",
     "configure": "bun run configure.ts",
-    "publish:npm": "npm publish --access=restricted",
+    "publish:npm": "npm publish --access=public",
     "publish:bun": "bun publish",
     "publish:jsr": "npx jsr publish",
     "publish:all": "npm run publish:npm && npm run publish:bun && npm run publish:jsr",

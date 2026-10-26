@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "plugin": [
-    "@usful/opencode-multi-model-fallback"
+    "file:///home/aldo/dev/06-apps-opencode-multi-model-fallback/index.ts"
   ]
 }

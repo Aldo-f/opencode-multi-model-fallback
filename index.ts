@@ -1,11 +1,8 @@
-// Only export the plugin function - OpenCode calls ALL exports as plugins
-export { createPlugin as RateLimitFallbackPlugin } from './src/plugin';
-
-// Type exports are fine (stripped at runtime)
-export type { RateLimitFallbackConfig, FallbackModel, FallbackModelObject } from './src/config';
-
 import { createPlugin } from './src/plugin';
+
+// OpenCode calls the default export as the plugin factory.
+// Only a single value export is allowed — multiple exports get instantiated as separate plugins.
 export default createPlugin;
 
-// Export the createPlugin function for opencode plugin CLI install alias
-export type { createPlugin } from './src/plugin';
+// Re-export types for consumers
+export type { RateLimitFallbackConfig, FallbackModel, FallbackModelObject } from './src/config';
